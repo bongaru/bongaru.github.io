@@ -1,13 +1,4 @@
 (() => {
-  const tabs = [...document.querySelectorAll('.game-tabs button')];
-  tabs.forEach(tab => tab.addEventListener('click', () => {
-    tabs.forEach(item => {
-      const selected = item === tab;
-      item.setAttribute('aria-selected', String(selected));
-      document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
-    });
-  }));
-
   const grid = document.getElementById('memory-grid');
   const memoryStatus = document.getElementById('memory-status');
   const faces = ['🐶', '🐱', '🐰', '🐼', '🦊', '🐨'];
@@ -54,53 +45,4 @@
   document.getElementById('memory-reset').addEventListener('click', resetMemory);
   resetMemory();
 
-  const machine = document.getElementById('claw-machine');
-  const head = document.getElementById('claw-head');
-  const aim = document.getElementById('claw-aim');
-  const status = document.getElementById('claw-status');
-  const basket = document.getElementById('prize-basket');
-  const controls = [...document.querySelectorAll('[data-claw-control]')];
-  let prizes = [], busy = false, caught = 0;
-  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
-  function position() { head.style.left = `${aim.value}%`; }
-  function resetClaw() {
-    if (busy) return;
-    machine.querySelectorAll('.prize').forEach(el => el.remove());
-    prizes = [15, 38, 62, 85].map((x, i) => {
-      const el = document.createElement('span'); el.className = 'prize';
-      el.textContent = faces[i]; el.style.left = `${x}%`; el.setAttribute('aria-hidden','true');
-      machine.append(el); return {x, el};
-    });
-    caught = 0; basket.textContent = '🧺'; aim.value = 50; position();
-    document.getElementById('claw-drop').disabled = false;
-    status.textContent = '집게를 동물 위로 옮긴 뒤 뽑기 버튼을 눌러요.';
-  }
-  aim.addEventListener('input', position);
-  document.getElementById('claw-left').addEventListener('click', () => { aim.value = Math.max(8, +aim.value - 5); position(); });
-  document.getElementById('claw-right').addEventListener('click', () => { aim.value = Math.min(92, +aim.value + 5); position(); });
-  document.getElementById('claw-reset').addEventListener('click', resetClaw);
-  document.getElementById('claw-drop').addEventListener('click', async () => {
-    if (busy || !prizes.length) return;
-    busy = true; controls.forEach(el => el.disabled = true);
-    status.textContent = '집게가 내려가요…';
-    const target = prizes.find(prize => Math.abs(prize.x - +aim.value) <= 9);
-    head.style.top = '187px'; await pause(700);
-    head.classList.add('closed'); await pause(250);
-    let held;
-    if (target) {
-      held = document.createElement('span'); held.className = 'held-prize';
-      held.textContent = target.el.textContent; head.append(held); target.el.remove();
-      prizes = prizes.filter(prize => prize !== target);
-    }
-    head.style.top = '26px'; await pause(700);
-    if (held) {
-      head.style.left = '15%'; await pause(300);
-      basket.textContent += held.textContent; held.remove(); caught++;
-      status.textContent = prizes.length ? `🎉 성공! 동물 ${caught}마리를 모았어요.` : '🎉 동물을 모두 뽑았어요! 다시 채워서 도전해 보세요.';
-    } else status.textContent = '아쉬워요! 집게를 동물 바로 위에 맞춰보세요.';
-    head.classList.remove('closed'); position();
-    busy = false; controls.forEach(el => el.disabled = false);
-    document.getElementById('claw-drop').disabled = !prizes.length;
-  });
-  resetClaw();
 })();
